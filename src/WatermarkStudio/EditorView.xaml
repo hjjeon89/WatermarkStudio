@@ -1,0 +1,242 @@
+<UserControl x:Class="WatermarkStudio.EditorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:WatermarkStudio"
+    FontFamily="맑은 고딕" FontSize="13" Foreground="#252B39"
+    AllowDrop="True" PreviewDragOver="Files_DragOver" Drop="Files_Drop">
+    <UserControl.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Help" Executed="ShowHelp_Executed"/>
+    </UserControl.CommandBindings>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F1" Command="ApplicationCommands.Help"/>
+    </UserControl.InputBindings>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibleIf"/>
+        <SolidColorBrush x:Key="Accent" Color="#3670F6"/>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#343B4B"/>
+            <Setter Property="BorderBrush" Value="#DDE2EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Opacity" Value="0.82"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Chrome" Property="Opacity" Value="0.65"/></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="#183CA5"/><Setter TargetName="Chrome" Property="BorderThickness" Value="2"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Chrome" Property="Opacity" Value="0.4"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource Accent}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="9,8"/>
+            <Setter Property="BorderBrush" Value="#DDE2EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="ComboBox"><Setter Property="Padding" Value="8,7"/><Setter Property="MinHeight" Value="34"/></Style>
+        <Style TargetType="CheckBox"><Setter Property="Margin" Value="0,5,12,5"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+        <Style x:Key="Caption" TargetType="TextBlock"><Setter Property="Foreground" Value="#7B8393"/><Setter Property="FontSize" Value="12"/></Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock"><Setter Property="Margin" Value="0,16,0,8"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+        <Style x:Key="PositionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Margin" Value="2"/><Setter Property="Padding" Value="9,5"/><Setter Property="FontSize" Value="18"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="#F5F6F8">
+        <Grid.RowDefinitions><RowDefinition Height="70"/><RowDefinition/><RowDefinition Height="36"/></Grid.RowDefinitions>
+        <Border Background="White" BorderBrush="#E5E8EE" BorderThickness="0,0,0,1" Padding="28,0">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="/WatermarkStudio;component/Assets/app-icon.png" Width="38" Height="38" Margin="0,0,11,0" AutomationProperties.Name="Watermark Studio 아이콘"/>
+                    <TextBlock Text="Watermark" FontSize="21" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text=" Studio" FontSize="21" Foreground="#8B92A1" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="?  사용 방법" Command="{x:Static ApplicationCommands.Help}" ToolTip="사용 방법 (F1)" Margin="0,0,20,0" AutomationProperties.Name="사용 방법, F1"/>
+                    <Border Background="#EBF6F0" CornerRadius="4" Padding="8,4" Margin="0,0,10,0"><TextBlock Text="LOCAL" Foreground="#2B8A5C" FontSize="10" FontWeight="Bold"/></Border>
+                    <TextBlock Text="내 PC에서 안전하게" Style="{StaticResource Caption}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" IsEnabled="{Binding CanEdit}">
+            <Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding HasImages}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Grid.Style>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40,20,40,55" MaxWidth="760">
+                <TextBlock Text="워터마크 이미지" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                <TextBlock Text="사진에 나만의 텍스트나 로고를 더하세요." FontSize="17" Foreground="#60697C" HorizontalAlignment="Center"/>
+                <TextBlock Text="여러 이미지에도 한 번에, 원하는 위치와 스타일로." FontSize="17" Foreground="#60697C" HorizontalAlignment="Center" Margin="0,5,0,30"/>
+                <Border Background="White" CornerRadius="14" Padding="70,30" MinWidth="660">
+                    <StackPanel>
+                        <Border Background="#EEF3FF" Width="64" Height="64" CornerRadius="18" HorizontalAlignment="Center" Margin="0,0,0,19">
+                            <Viewbox Width="32" Height="32"><Canvas Width="32" Height="32"><Rectangle Canvas.Left="3" Canvas.Top="4" Width="26" Height="24" RadiusX="3" RadiusY="3" Stroke="#3670F6" StrokeThickness="2"/><Ellipse Canvas.Left="9" Canvas.Top="10" Width="5" Height="5" Fill="#3670F6"/><Path Data="M 5,25 L 14,17 L 19,21 L 24,16 L 28,21" Stroke="#3670F6" StrokeThickness="2"/></Canvas></Viewbox>
+                        </Border>
+                        <Button Content="＋  여러 이미지 선택" Style="{StaticResource Primary}" Click="AddImages_Click" FontSize="19" Padding="40,17" HorizontalAlignment="Center" AutomationProperties.Name="여러 이미지 선택"/>
+                        <TextBlock Text="또는 여기에 이미지를 끌어다 놓으세요" Foreground="#737D90" HorizontalAlignment="Center" Margin="0,17,0,0"/>
+                        <TextBlock Text="JPG · PNG · 정적 GIF" Style="{StaticResource Caption}" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                    </StackPanel>
+                </Border>
+                <UniformGrid Columns="3" Margin="0,28,0,0">
+                    <StackPanel HorizontalAlignment="Center"><TextBlock Text="텍스트와 로고" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock Text="내 브랜드에 맞는 워터마크" Style="{StaticResource Caption}" Margin="0,7,0,0"/></StackPanel>
+                    <StackPanel HorizontalAlignment="Center"><TextBlock Text="한 번에 여러 장" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock Text="같은 설정으로 일괄 저장" Style="{StaticResource Caption}" Margin="0,7,0,0"/></StackPanel>
+                    <StackPanel HorizontalAlignment="Center"><TextBlock Text="원본은 그대로" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock Text="별도 파일로 안전하게 저장" Style="{StaticResource Caption}" Margin="0,7,0,0"/></StackPanel>
+                </UniformGrid>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding HasImages}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Grid.Style>
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="350"/></Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="66"/><RowDefinition/><RowDefinition Height="140"/></Grid.RowDefinitions>
+                <Border Background="White" BorderBrush="#E5E8EE" BorderThickness="0,0,0,1" Padding="22,12">
+                    <DockPanel>
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <CheckBox Content="원본 보기" IsChecked="{Binding ShowOriginal}" VerticalAlignment="Center" AutomationProperties.Name="원본 보기"/>
+                            <Button Content="＋ 이미지 추가" Click="AddImages_Click" IsEnabled="{Binding CanEdit}" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="미리보기" FontSize="16" FontWeight="Bold"/><TextBlock Text="{Binding ImageCount}" Foreground="#8B93A3" Margin="12,2,0,0"/></StackPanel>
+                    </DockPanel>
+                </Border>
+                <local:WatermarkCanvas x:Name="Preview" Grid.Row="1" AutomationProperties.Name="워터마크 미리보기, 드래그로 이동, 모서리로 크기 조정, 원으로 회전, 두 번 클릭으로 편집"/>
+                <Border Grid.Row="2" Background="White" BorderBrush="#E5E8EE" BorderThickness="0,1,0,0" Padding="16,10">
+                    <ListBox ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent" BorderThickness="0"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled" IsEnabled="{Binding CanEdit}" AutomationProperties.Name="선택한 이미지 목록">
+                        <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="Padding" Value="5"/><Setter Property="Margin" Value="0,0,7,0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style></ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate><DataTemplate>
+                            <Grid Width="118" ToolTip="{Binding Path}">
+                                <Grid.RowDefinitions><RowDefinition Height="64"/><RowDefinition Height="25"/></Grid.RowDefinitions>
+                                <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                                <Button Content="×" Tag="{Binding}" Click="RemoveImage_Click" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="4,0" FontSize="14" ToolTip="목록에서 제거" AutomationProperties.Name="이미지 목록에서 제거"/>
+                                <TextBlock Grid.Row="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="11" VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate></ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </Grid>
+
+            <Border Grid.Column="1" Background="White" BorderBrush="#E1E5EC" BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <StackPanel Margin="24,22,24,16">
+                        <TextBlock Text="워터마크 설정" FontSize="21" FontWeight="Bold"/>
+                        <TextBlock Text="모든 이미지에 동일하게 적용됩니다." Style="{StaticResource Caption}" Margin="0,8,0,18"/>
+                        <UniformGrid Columns="2" IsEnabled="{Binding CanEdit}">
+                            <Button Content="T  텍스트 추가" Click="AddText_Click" Margin="0,0,5,0"/>
+                            <Button Content="▧  로고 추가" Click="AddLogo_Click" Margin="5,0,0,0"/>
+                        </UniformGrid>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsEnabled="{Binding CanEdit}">
+                        <StackPanel Margin="24,0,24,24">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{Binding Layers}" SelectedItem="{Binding SelectedLayer}" DisplayMemberPath="Label" AutomationProperties.Name="편집할 워터마크"/>
+                                <Button Grid.Column="1" Content="×" Click="RemoveLayer_Click" IsEnabled="{Binding HasLayer}" Padding="10,5" Margin="7,0,0,0" ToolTip="선택 워터마크 삭제" AutomationProperties.Name="선택 워터마크 삭제"/>
+                            </Grid>
+                            <TextBlock Text="텍스트나 로고를 추가해 시작하세요.">
+                                <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource Caption}"><Style.Triggers><DataTrigger Binding="{Binding HasLayer}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                            </TextBlock>
+                            <StackPanel Visibility="{Binding HasLayer, Converter={StaticResource VisibleIf}}">
+                                <StackPanel Visibility="{Binding SelectedLayer.IsText, Converter={StaticResource VisibleIf}}">
+                                    <TextBlock Text="텍스트" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding SelectedLayer.Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" MaxHeight="120" MaxLength="500" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="워터마크 텍스트"/>
+                                    <TextBlock Text="글꼴" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox x:Name="FontPicker" SelectedItem="{Binding SelectedLayer.FontName, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="워터마크 글꼴"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                                        <CheckBox Content="굵게" FontWeight="Bold" IsChecked="{Binding SelectedLayer.Bold}"/>
+                                        <CheckBox Content="기울임" FontStyle="Italic" IsChecked="{Binding SelectedLayer.Italic}"/>
+                                        <CheckBox Content="밑줄" IsChecked="{Binding SelectedLayer.Underline}"/>
+                                    </StackPanel>
+                                    <DockPanel Margin="0,16,0,8"><TextBlock DockPanel.Dock="Right" Text="{Binding SelectedLayer.FontSize, StringFormat={}{0:0}}" Foreground="#778197"/><TextBlock Text="글꼴 크기" FontWeight="SemiBold"/></DockPanel>
+                                    <Slider Minimum="12" Maximum="180" Value="{Binding SelectedLayer.FontSize}" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="글꼴 크기"/>
+                                    <TextBlock Text="이미지 너비 1,000px 기준 · 비율에 맞게 적용" Style="{StaticResource Caption}" FontSize="10" Margin="0,4,0,0"/>
+                                    <TextBlock Text="글자 색상" Style="{StaticResource FieldLabel}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="32"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <Border Background="{Binding SelectedLayer.ColorHex}" BorderBrush="#DDE2EB" BorderThickness="1" CornerRadius="4" Margin="0,0,7,0"/>
+                                        <TextBox Grid.Column="1" Text="{Binding SelectedLayer.ColorHex, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" MaxLength="7" AutomationProperties.Name="글자 색상, 예: #FFFFFF"/>
+                                    </Grid>
+                                    <UniformGrid Columns="8" Margin="0,8,0,6">
+                                        <Button Background="#FFFFFF" Tag="#FFFFFF" Click="Color_Click" Padding="0" Height="22" Margin="2" ToolTip="흰색"/>
+                                        <Button Background="#171B26" Tag="#171B26" Click="Color_Click" Padding="0" Margin="2" ToolTip="검정"/>
+                                        <Button Background="#3670F6" Tag="#3670F6" Click="Color_Click" Padding="0" Margin="2" ToolTip="파랑"/>
+                                        <Button Background="#F05B61" Tag="#F05B61" Click="Color_Click" Padding="0" Margin="2" ToolTip="빨강"/>
+                                        <Button Background="#FDBA45" Tag="#FDBA45" Click="Color_Click" Padding="0" Margin="2" ToolTip="노랑"/>
+                                        <Button Background="#42B889" Tag="#42B889" Click="Color_Click" Padding="0" Margin="2" ToolTip="초록"/>
+                                        <Button Background="#A578E6" Tag="#A578E6" Click="Color_Click" Padding="0" Margin="2" ToolTip="보라"/>
+                                        <Button Background="#A3AAB8" Tag="#A3AAB8" Click="Color_Click" Padding="0" Margin="2" ToolTip="회색"/>
+                                    </UniformGrid>
+                                    <StackPanel Orientation="Horizontal"><CheckBox Content="그림자" IsChecked="{Binding SelectedLayer.Shadow}"/><CheckBox Content="배경 색상" IsChecked="{Binding SelectedLayer.Background}"/></StackPanel>
+                                    <TextBox Text="{Binding SelectedLayer.BackgroundHex, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Visibility="{Binding SelectedLayer.Background, Converter={StaticResource VisibleIf}}" MaxLength="7" AutomationProperties.Name="텍스트 배경 색상"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding SelectedLayer.IsText}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></StackPanel.Style>
+                                    <TextBlock Text="로고 너비 (%)" Style="{StaticResource FieldLabel}"/>
+                                    <DockPanel><TextBlock DockPanel.Dock="Right" Text="{Binding SelectedLayer.Size, StringFormat={}{0:0}%}" Width="44" TextAlignment="Right"/><Slider Minimum="3" Maximum="90" Value="{Binding SelectedLayer.Size}" AutomationProperties.Name="로고 너비 비율"/></DockPanel>
+                                </StackPanel>
+                                <DockPanel Margin="0,18,0,8"><TextBlock DockPanel.Dock="Right" Text="{Binding SelectedLayer.Opacity, StringFormat={}{0:0}%}" Foreground="#778197"/><TextBlock Text="불투명도" FontWeight="SemiBold"/></DockPanel>
+                                <Slider Minimum="0" Maximum="100" Value="{Binding SelectedLayer.Opacity}" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="불투명도"/>
+                                <DockPanel Margin="0,18,0,8"><TextBlock DockPanel.Dock="Right" Text="{Binding SelectedLayer.Rotation, StringFormat={}{0:0}°}" Foreground="#778197"/><TextBlock Text="회전" FontWeight="SemiBold"/></DockPanel>
+                                <Slider Minimum="-180" Maximum="180" Value="{Binding SelectedLayer.Rotation}" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="워터마크 회전"/>
+                                <TextBlock Text="위치" Style="{StaticResource FieldLabel}"/>
+                                <UniformGrid Columns="3" Width="150" HorizontalAlignment="Left">
+                                    <Button Content="↖" Tag="0,0" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="왼쪽 위"/>
+                                    <Button Content="↑" Tag="1,0" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="가운데 위"/>
+                                    <Button Content="↗" Tag="2,0" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="오른쪽 위"/>
+                                    <Button Content="←" Tag="0,1" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="왼쪽 가운데"/>
+                                    <Button Content="·" Tag="1,1" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="정가운데"/>
+                                    <Button Content="→" Tag="2,1" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="오른쪽 가운데"/>
+                                    <Button Content="↙" Tag="0,2" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="왼쪽 아래"/>
+                                    <Button Content="↓" Tag="1,2" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="가운데 아래"/>
+                                    <Button Content="↘" Tag="2,2" Click="Position_Click" Style="{StaticResource PositionButton}" ToolTip="오른쪽 아래"/>
+                                </UniformGrid>
+                                <TextBlock Text="모서리: 크기 · 위쪽 원: 회전&#x0a;텍스트 두 번 클릭: 직접 편집 · Shift: 15° 회전" Style="{StaticResource Caption}" FontSize="11" Margin="0,8,0,10"/>
+                                <CheckBox Content="반복 배치 (모자이크)" IsChecked="{Binding SelectedLayer.Tiled}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <Border Grid.Row="2" BorderBrush="#E5E8EE" BorderThickness="0,1,0,0" Padding="24,16,24,20">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="155"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="저장 형식" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="FormatPicker" Grid.Column="1" SelectedIndex="0" IsEnabled="{Binding CanEdit}" AutomationProperties.Name="저장 형식">
+                                    <ComboBoxItem Content="원본 형식" Tag="Original"/><ComboBoxItem Content="PNG" Tag="PNG"/><ComboBoxItem Content="JPG" Tag="JPG"/>
+                                </ComboBox>
+                            </Grid>
+                            <Button Content="워터마크 적용 후 저장  →" Style="{StaticResource Primary}" Click="Export_Click" IsEnabled="{Binding CanExport}" Padding="10,15" FontSize="15"/>
+                            <StackPanel Visibility="{Binding Busy, Converter={StaticResource VisibleIf}}" Margin="0,10,0,0">
+                                <ProgressBar Height="4" Value="{Binding Progress}" Maximum="100"/>
+                                <Button Content="작업 중지" Click="Cancel_Click" Margin="0,8,0,0" Padding="8,5"/>
+                            </StackPanel>
+                            <TextBlock Text="원본 파일은 유지하고 새 파일로 저장합니다." Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+        <Border Grid.Row="2" Background="White" BorderBrush="#E5E8EE" BorderThickness="0,1,0,0" Padding="24,0">
+            <TextBlock Text="{Binding Status}" VerticalAlignment="Center" Foreground="#778197" FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}"/>
+        </Border>
+    </Grid>
+</UserControl>
